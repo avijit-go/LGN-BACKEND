@@ -8,7 +8,7 @@ import mongoose from "mongoose";
 
 export const getUser = async (req, res, next) => {
   try {
-    const { userId } = req.body;
+    const { userId } = req.params;
     if (userId === "" || !userId) {
       return next(createError(422, "Provide a user id"));
     }

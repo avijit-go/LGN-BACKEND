@@ -100,14 +100,13 @@ export const tournamentDetails = async (req, res, next) => {
       return res.status(400).json({ error: "Invalid tournament ID" });
     }
 
-    const tournament = await tournamentScheema.findById(id);
+    const tournament = await tournamentScheema.findOne({_id: id});
     if (!tournament) {
       return res.status(404).json({ error: "Tournament not found" });
     }
 
-    res
-      .status(200)
-      .json({ success: true, message: "Tournament fetch success", tournament });
+    const userdetails = await registerScheema.findOne({_id: tournament.userId});
+    res.status(200).json({success:true, message: "Tournament fetch success", tournament,userdetails});
   } catch (error) {
     console.log(error);
     next(createError(500, "Failed to fetch tournament"));
@@ -362,7 +361,7 @@ export const giveAnswer = async (req, res, next) => {
     if (!req.params.id) {
       return next(createError(422, "Please provide a id"));
     }
-    const optionField = `option${req.body.optionNumber}.users`;
+    const optionField = `${req.body.optionNumber}.users`;
     console.log("optionField:", optionField);
     const result = await Question.updateOne(
       { _id: req.params.id },

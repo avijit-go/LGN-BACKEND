@@ -20,7 +20,7 @@ import { varifyToken } from "../varifyToken.js";
 const router = express.Router();
 
 router.post("/create", varifyToken, createTournament);
-router.get("/create/:id", varifyToken, tournamentDetails);
+router.get("/get-tournament-details/:id", varifyToken, tournamentDetails);
 router.post("/add/comment", Comments);
 router.get("/get/tournament-comments/:tournamentId", varifyToken, getComments);
 router.get("/", getTournaments);

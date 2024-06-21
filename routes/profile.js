@@ -17,7 +17,7 @@ import {
 const router = express.Router();
 import { authentication } from "../middleware/authentication.js";
 
-router.get("/user-profile", varifyToken, getUser);
+router.get("/user-profile/:userId", varifyToken, getUser);
 router.put("/edit-profile", varifyToken, editUser);
 router.put("/search-user", getSearchedUser);
 router.get("/", getUsers);
