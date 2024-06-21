@@ -20,8 +20,8 @@ const TournamentQuestion = mongoose.Schema(
       trim: true,
       required: [true, "Question is required"],
     },
-    correctOption: { type: String, default: "" },
-    tourId: { type: mongoose.Schema.Types.ObjectId, ref: "Tournament" },
+    correctOption: { type: String, default: "", enum: ["A", "B", "C", "D", ""],  },
+    tourId: { type: mongoose.Schema.Types.ObjectId, ref: "Tournament", index: true, },
     optionA: {
       text: { type: String },
       image: { type: String },
@@ -46,6 +46,7 @@ const TournamentQuestion = mongoose.Schema(
       type: String,
       enum: ["active", "inactive"],
       default: "active",
+      index: true,
     },
   },
   { timestamps: true }
