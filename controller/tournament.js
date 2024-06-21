@@ -10,6 +10,7 @@ import tournamentQuestion, {
 } from "../models/tournamentQuestion.js";
 import Notification from "../models/notification.js";
 import Question from "../models/tournamentQuestion.js";
+import Prediction from "../models/prediction.js"
 
 // Start Create Tournaments
 
@@ -361,12 +362,21 @@ export const giveAnswer = async (req, res, next) => {
     if (!req.params.id) {
       return next(createError(422, "Please provide a id"));
     }
+    const questionDetails = await Question.findById(req.params.id);
     const optionField = `${req.body.optionNumber}.users`;
     console.log("optionField:", optionField);
     const result = await Question.updateOne(
       { _id: req.params.id },
       { $addToSet: { [optionField]: req.body.userId } }
     );
+    const predictionData = Prediction({
+      _id: new mongoose.Types.ObjectId(),
+      user: req.body.userId,
+      question: req.params.id,
+      answer: req.body.optionNumber,
+      tournament: questionDetails.tourId,
+    });
+    await predictionData.save();
     return res
       .status(200)
       .json({ message: "User added to option successfully.", status: 200 });
@@ -374,3 +384,24 @@ export const giveAnswer = async (req, res, next) => {
     next(error);
   }
 };
+
+export const getPredictionList = async(req, res, next) => {
+  try {
+    if (!req.params.userId) {
+      return next(createError(422, "Please provide a id"));
+    }
+    const page = req.query.page || 1;
+    const limit = req.query.limit || 10;
+
+    const list = await Prediction.find({user: req.params.userId}).populate({
+      path: "question",
+      select: { _id: 1, question: 1 },
+    }).populate({
+      path: "tournament",
+      select: { _id: 1, title: 1 },
+    }).limit(limit).skip(limit*(page-1)).sort({createdAt: -1});
+    return res.status(200).json({message: "GET prediction list", status: true, result: list})
+  } catch (error) {
+    next(error);
+  }
+}
