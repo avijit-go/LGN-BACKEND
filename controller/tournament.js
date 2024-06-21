@@ -405,3 +405,15 @@ export const getPredictionList = async(req, res, next) => {
     next(error);
   }
 }
+
+export const getTournamentById= async(req, res, next) => {
+  try {
+    if (!req.params.tournamentId) {
+      return next(createError(422, "Please provide a id"));
+    }
+    const result = await tournamentScheema.findById(req.params.tournamentId);
+    return res.status(200).json({status: 200, result})
+  } catch (error) {
+    next(error);
+  }
+}
