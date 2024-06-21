@@ -20,7 +20,7 @@ const TournamentQuestion = mongoose.Schema(
       trim: true,
       required: [true, "Question is required"],
     },
-    correctOption: { type: String, default: "", enum: ["A", "B", "C", "D", ""],  },
+    correctOption: { type: String, default: "", enum: ["optionA", "optionB", "optionC", "optionD", ""],  },
     tourId: { type: mongoose.Schema.Types.ObjectId, ref: "Tournament", index: true, },
     optionA: {
       text: { type: String },
@@ -55,17 +55,20 @@ const TournamentQuestion = mongoose.Schema(
 const LeaderBoardScheema = mongoose.Schema(
   {
     tournamentId: {
-      type: mongoose.Schema.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       required: [true, "Tournament Id is required"],
+      ref: "Tournament",
       trim: true,
     },
     userId: {
-      type: mongoose.Schema.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       required: [true, "User Id is required"],
+      ref: "User"
     },
     questionId: {
-      type: mongoose.Schema.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       required: [true, "Question Id is required"],
+      ref: "Question"
     },
     correctPredictions: {
       type: Number,
@@ -76,6 +79,7 @@ const LeaderBoardScheema = mongoose.Schema(
       required: [true, "Total time spent is required"],
       default: 0,
     },
+    
   },
   { timestamps: true }
 );
