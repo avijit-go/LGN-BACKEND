@@ -97,9 +97,11 @@ export const updateQuestionStatus = async (req, res, next) => {
     const data = await Question.findById(req.params.id);
     if(data.correctOption.trim()) {
         const opt = `${data.correctOption}`;
-        console.log(opt)
+        
         let users = data[opt].users;
+        
         if(users.length > 0) {
+          // *** Create wallet for users who give correct answer
           const operations = users.map(userId => ({
             insertOne: {
               document: {
@@ -114,6 +116,27 @@ export const updateQuestionStatus = async (req, res, next) => {
               console.log('Bulk write operation successful:', result);
           }).catch(error => {
               console.error('Bulk write operation failed:', error);
+          });
+          // *** Update leaderboard for users who give correct answer
+          const leaderboardOperations = users.map(userId => ({
+            updateOne: {
+              filter: {
+                 tournamentId: data.tourId, // Assuming you have a tournamentId field in your Question schema
+                userId: userId,
+                questionId: req.params.id
+              },
+              update: {
+                $inc: { correctPredictions: 1 },
+                $setOnInsert: { totalTimeSpend: 0 } // Set default value for totalTimeSpend
+              },
+              upsert: true
+            }
+          }));
+          LeaderBoard.bulkWrite(leaderboardOperations)
+          .then(result => {
+              console.log('Leaderboard update operation successful:', result);
+          }).catch(error => {
+              console.error('Leaderboard update operation failed:', error);
           });
         }
         const updatedQuestion = await Question.findByIdAndUpdate(
@@ -131,12 +154,6 @@ export const updateQuestionStatus = async (req, res, next) => {
         );
         return res.status(200).json({message: "Status has been updated", question: updatedQuestion });
     }
-    /*const updatedQuestion = await Question.findByIdAndUpdate(
-      req.params.id,
-      { $set: { status: req.body.status } },
-      { new: true }
-    );
-    */
   } catch (error) {
     next(error);
   }
