@@ -11,6 +11,7 @@ import tournamentQuestion, {
 import Notification from "../models/notification.js";
 import Question from "../models/tournamentQuestion.js";
 import Prediction from "../models/prediction.js"
+import { uploadImage } from "../helper/helper.js";
 
 // Start Create Tournaments
 
@@ -22,7 +23,9 @@ function isValidObjectId(id) {
 export const createTournament = async (req, res, next) => {
   try {
     const tournamentData = req.body;
-
+    const TournamentImage = req.files;
+    console.log(TournamentImage);
+    
     if (!tournamentData.title) {
       return res.status(422).json({ error: "Enter tournament title" });
     }
@@ -63,6 +66,10 @@ export const createTournament = async (req, res, next) => {
         .status(400)
         .json({ error: "Valid userId required for create tournament" });
     }
+    if (!TournamentImage) {
+      return next(createError(422,"Tournament Image is required"));
+    }
+    const result = await uploadImage(req.files.TournamentImage);
 
     const existUser = await registerScheema.findOne({
       _id: tournamentData.userId,
@@ -80,7 +87,7 @@ export const createTournament = async (req, res, next) => {
       return res.status(403).json({ error: "Tournament already exists" });
     }
 
-    const newTournament = new tournamentScheema({ ...req.body });
+    const newTournament = new tournamentScheema({ image: result.url, ...req.body });
     const tournament = await newTournament.save();
     res.status(201).json({
       success: true,
@@ -93,6 +100,38 @@ export const createTournament = async (req, res, next) => {
     next(createError(500, "Check data models and data types"));
   }
 };
+
+export const getUpcomingTournament = async (req, res, next) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+
+    const now = new Date();
+
+    // Utility function to convert DD/MM/YYYY string to Date object
+    const parseDate = (dateStr) => {
+      const [day, month, year] = dateStr.split('/');
+      return new Date(`${year}-${month}-${day}`);
+    };
+
+    const allTournaments = await tournamentScheema
+      .find({ is_deleted: { $ne: true } })
+      .sort({ createdAt: -1 });
+
+    // Filter results to ensure `streaming_date` is after the current date
+    const filteredTournaments = allTournaments.filter(tournament => {
+      const streamingDate = parseDate(tournament.streaming_date);
+      return streamingDate > now;
+    });
+
+    // Apply pagination to the filtered results
+    const paginatedTournaments = filteredTournaments.slice((page - 1) * limit, page * limit);
+
+    return res.status(200).json({ status: 200, tournaments: paginatedTournaments });
+  } catch (error) {
+    next(error);
+  }
+}
 
 export const tournamentDetails = async (req, res, next) => {
   try {
@@ -119,30 +158,32 @@ export const tournamentDetails = async (req, res, next) => {
 export const Comments = async (req, res, next) => {
   const tournamentId = req.body.tournamentId;
   const { content, author } = req.body;
-
+  
   if (!content || !author) {
-    return res.status(400).json({ message: "Content and author are required" });
+    return res.status(400).json({ message: 'Content and author are required' });
   }
-
+  
   try {
     const tournament = await tournamentScheema.findById(tournamentId);
     if (!tournament) {
-      return res.status(404).json({ message: "Tournament not found" });
+      return res.status(404).json({ message: 'Tournament not found' });
     }
-
-    const newComment = { content, author };
+    const existUser = await registerScheema.findOne({"_id":author});
+    const { password: userPassword, ...others } = existUser._doc;
+   console.log(others,"sdghfjgsdjhfgdhjsfghjs");
+    const newComment = { content, author, userName: others.name };
     tournament.comments.push(newComment);
     await tournament.save();
-
+    
     // Emit the new comment to all connected clients in the room
-    req.app.get("io").to(tournamentId).emit("newComment", newComment);
-
-    res.status(201).json({ message: "Comment added" });
+    req.app.get('io').to(tournamentId).emit('newComment', newComment);
+    
+    res.status(201).json({ message: 'Comment added' });
   } catch (error) {
-    console.error("Error adding comment:", error);
-    res.status(500).json({ message: "Server error" });
+    console.error('Error adding comment:', error);
+    res.status(500).json({ message: 'Server error' });
   }
-};
+}
 
 export const getComments = async (req, res, next) => {
   const tournamentId = req.params.tournamentId;
@@ -300,7 +341,7 @@ export const storeLeaderboard = async (req, res, next) => {
 
 export const getAllLeaderboards = async (req, res, next) => {
   try {
-    const leaderBoards = await leaderBoardScheema.find();
+    const leaderBoards = await leaderBoardScheema.find().populate("userId");
     console.log("okay");
     res.status(200).json({
       success: true,
@@ -325,7 +366,7 @@ export const getLeaderboardByTournament = async (req, res, next) => {
       .find({
         tournamentId: tournamentId,
       })
-      .populate("userId");
+      .populate("userId").populate("tournamentId").populate("questionId");
     res.status(200).json({
       success: true,
       message: "Leaderboard fetched successfully",
@@ -345,7 +386,7 @@ export const getLeaderboardByUserId = async (req, res, next) => {
     } else if (!isValidObjectId(userId)) {
       return next(createError(400, "userId is not a valid"));
     }
-    const leaderboardByUserId = await leaderBoardScheema.find({ userId });
+    const leaderboardByUserId = await leaderBoardScheema.find({ userId }).populate("userId");
     res.status(200).json({
       success: true,
       message: "Leaderboard fetched successfully",
@@ -376,6 +417,14 @@ export const giveAnswer = async (req, res, next) => {
       answer: req.body.optionNumber,
       tournament: questionDetails.tourId,
     });
+    const newLeaderBoard = leaderBoardScheema({
+      userId:req.body.userId,
+      questionId:req.params.id,
+      tournamentId:questionDetails.tourId,
+      correctPredictions: questionDetails.correctOption == req.body.optionNumber,
+      totalTimeSpend : 0,
+    });
+    await newLeaderBoard.save();
     await predictionData.save();
     return res
       .status(200)

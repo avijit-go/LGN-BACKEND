@@ -1,17 +1,18 @@
 import mongoose from "mongoose";
 
-    const CommentScheema = new mongoose.Schema({
-        content:{
-            type: String,
-            required: true,
-        },
-        author: {
-            type: String,
-            required: true,
-        },
-        
-
-    },{timestamps: true});
+const CommentSchema = new mongoose.Schema({
+    content: {
+        type: String,
+        required: true,
+    },
+    author: {
+        type: String,
+        required: true,
+    },
+    userName: {
+        type: String
+    }
+}, {timestamps: true});
 
 
     const tournamentScheema = new mongoose.Schema({
@@ -70,7 +71,7 @@ import mongoose from "mongoose";
             type: mongoose.Schema.Types.ObjectId,
             required: true
         },
-        comments: [CommentScheema],
+        comments: [CommentSchema],
     },{timestamps: true});
 
     export default mongoose.model("Tournament",tournamentScheema);  

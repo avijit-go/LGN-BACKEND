@@ -15,7 +15,8 @@ import {
   getLeaderboardByTournament,
   getLeaderboardByUserId,
   giveAnswer,
-  getPredictionList
+  getPredictionList,
+  getUpcomingTournament
 } from "../controller/tournament.js";
 import { varifyToken } from "../varifyToken.js";
 const router = express.Router();
@@ -41,6 +42,7 @@ router.get(
 );
 router.put("/give-answer/:id", giveAnswer); // :id =  question ID
 
-router.get("/prediction-list/:userId", getPredictionList)
+router.get("/prediction-list/:userId", getPredictionList);
+router.get("/get-upcoming-tournament",getUpcomingTournament);
 
 export default router;
