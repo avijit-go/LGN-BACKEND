@@ -36,7 +36,7 @@ const server = http.createServer(app);
 const port = process.env.PORT || 8080;
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000", // Replace with your React app's URL
+    origin: "https://main--lgnserver.netlify.app/", // Replace with your React app's URL
     methods: ["GET", "POST"],
     credentials: true,
   },
