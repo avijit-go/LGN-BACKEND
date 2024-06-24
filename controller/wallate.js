@@ -10,7 +10,9 @@ export const getWallate = async (req,res,next) => {
             return next(createError(422, "UserId required"));
 
         }
-        const allWallate = await wallet.find({ user: userId }).populate("user").populate("questionId")
+        const allWallate = await wallet.find({ user: userId }).populate("user").populate({path:"questionId", populate:{
+            path: "questionId"
+        }})
         .skip(limit * (page - 1))
         .limit(limit)
         .sort({ createdAt: -1 });

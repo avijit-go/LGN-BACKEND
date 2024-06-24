@@ -17,7 +17,7 @@ import {
 const router = express.Router();
 import { authentication } from "../middleware/authentication.js";
 import { getWallate } from "../controller/wallate.js";
-import { getNotificationByUserId } from "../controller/notification.js";
+import { getAdminNotification, getNotificationByUserId } from "../controller/notification.js";
 
 router.get("/user-profile/:userId", varifyToken, getUser);
 router.put("/edit-profile", varifyToken, editUser);
@@ -31,5 +31,6 @@ router.post("/subscribe/:userId", subscribe);
 router.post("/follow/:userId", follow);
 router.get("/wallate/:userId", getWallate);
 router.get("/notification/:userId", getNotificationByUserId);
+router.get("/admin-notification", getAdminNotification)
 
 export default router;
