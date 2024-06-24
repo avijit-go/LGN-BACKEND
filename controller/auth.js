@@ -6,6 +6,7 @@ import registerScheema from "../models/register.js";
 import jwt from "jsonwebtoken";
 import { isValidObjectId } from "../helper/userHelper.js";
 import Notification from "../models/notification.js";
+import  mongoose from "mongoose";
 // Register Admin
 // validate the email address
 function isValidEmail(email) {
