@@ -7,6 +7,6 @@ router.get("/", authentication, getBannerList)
 router.get("/:bannerId", getSingleBanner);
 router.put("/update/status/:bannerId", authentication, updateBannerStatus);
 router.put("/delete/:bannerId", authentication, deleteBanner);
-router.put("/update/:bannerId", authentication, updateBannerData)
+router.put("/update/:bannerId", authentication, updateBannerData);
 
 export default router;

@@ -206,6 +206,7 @@ export const updateAccountType = async (req, res, next) => {
       type: req.body.accountType === "streamer" ? 4 : 5,
       fromAdmin: true,
       message: req.body.message,
+      fromUser: req.body.fromUser 
     });
     const notificationData = await notificationObj.save();
     return res.status(200).json({

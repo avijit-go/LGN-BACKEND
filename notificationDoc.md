@@ -10,3 +10,4 @@
 - Type 6: Type 6 notification is for active tournament.
 - Type 7: Type 7 notification is for inactive tournament.
 - Type 8: Type 8 notification is for delete tournament.
+- Type 9: Type 9 notification is for request for streaming account.

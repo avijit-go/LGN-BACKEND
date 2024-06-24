@@ -9,6 +9,7 @@ const notificationSchema = mongoose.Schema(
     type: { type: Number },
     message: { type: String, trim: true },
     fromAdmin: { type: Boolean, default: false },
+    fromUser: {type: mongoose.Schema.Types.ObjectId, ref: "User"}
   },
   { timestamps: true }
 );

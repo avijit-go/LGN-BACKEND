@@ -5,7 +5,7 @@ import { createError } from "../error.js";
 import registerScheema from "../models/register.js";
 import jwt from "jsonwebtoken";
 import { isValidObjectId } from "../helper/userHelper.js";
-
+import Notification from "../models/notification.js";
 // Register Admin
 // validate the email address
 function isValidEmail(email) {
@@ -146,18 +146,30 @@ export const streamerRequest = async (req, res, next) => {
     if (!isExistUser) {
       return next(createError(403, "User not found"));
     }
+
     const options = { new: true, runValidators: true };
-    const updatedUser = await registerScheema.findOneAndUpdate({
-      accountType: "pending",
-      options: options,
+    const updatedUser = await registerScheema.findOneAndUpdate(
+      { _id: userId }, // filter
+      { accountType: "pending" }, // update
+      options // options
+    );
+
+    if (!updatedUser) {
+      return next(createError(404, "User not found or not updated"));
+    }
+    const notificationObj = Notification({
+      _id: new mongoose.Types.ObjectId(),
+      user: userId,
+      type: 9,
+      fromAdmin: false,
     });
-    res
-      .status(200)
-      .json({
-        Success: true,
-        message: "User updated successfully",
-        id: updatedUser._id,
-      });
+   const userNotification =  await notificationObj.save();
+    res.status(200).json({
+      Success: true,
+      message: "User updated successfully",
+      id: updatedUser._id,
+      userNotification
+    });
   } catch (error) {
     console.log(error);
     return next(createError(500, "Internal server error"));
