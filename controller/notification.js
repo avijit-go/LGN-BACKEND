@@ -9,7 +9,7 @@ export const getNotificationByUserId = async (req, res, next) => {
         if (!userId || userId === "") {
            return next(createError(422,"UserId required")) 
         }
-        const allNotificationByUserId = await notification.find({ user: userId, fromAdmin: false })
+        const allNotificationByUserId = await notification.find({ user: userId, fromAdmin: false }).populate("user")
         .skip(limit * (page - 1))
         .limit(limit)
         .sort({ createdAt: -1 });
