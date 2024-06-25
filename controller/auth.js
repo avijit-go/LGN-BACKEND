@@ -137,7 +137,7 @@ export const login = async (req, res, next) => {
 export const streamerRequest = async (req, res, next) => {
   const { userId } = req.body;
   try {
-    if (userId === "" || !userId) {
+    if (!userId) {
       return next(createError(422, "UserId is required"));
     } else if (!isValidObjectId(userId)) {
       return next(createError(400, "Invalid UserId"));
@@ -158,18 +158,24 @@ export const streamerRequest = async (req, res, next) => {
     if (!updatedUser) {
       return next(createError(404, "User not found or not updated"));
     }
+
     const notificationObj = Notification({
       _id: new mongoose.Types.ObjectId(),
       user: userId,
       type: 9,
-      fromAdmin: false,
+      fromAdmin: true,
     });
-   const userNotification =  await notificationObj.save();
+
+    const userNotification = await notificationObj.save();
+
+    // Emit a socket event to the specific user room
+    req.app.get("io").to(userId).emit("notification send", userNotification);
+
     res.status(200).json({
       Success: true,
       message: "User updated successfully",
       id: updatedUser._id,
-      userNotification
+      userNotification,
     });
   } catch (error) {
     console.log(error);

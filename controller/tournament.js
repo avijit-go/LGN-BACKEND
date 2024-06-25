@@ -354,29 +354,46 @@ export const getAllLeaderboards = async (req, res, next) => {
   }
 };
 
+
 export const getLeaderboardByTournament = async (req, res, next) => {
   const { tournamentId } = req.params;
+  const { page = 1, limit = 10 } = req.query; // Default to page 1 and limit 10
+
   try {
-    if (tournamentId === "" || !tournamentId) {
-      return next(createError(422, "Tournamenty Id is required"));
+    if (!tournamentId) {
+      return next(createError(422, "Tournament Id is required"));
     } else if (!isValidObjectId(tournamentId)) {
       return next(createError(400, "Invalid tournament Id"));
     }
+
+    const skip = (page - 1) * limit; // Calculate the number of documents to skip
+
     const leaderBoardByTournament = await leaderBoardScheema
       .find({
         tournamentId: tournamentId,
       })
-      .populate("userId").populate("tournamentId").populate("questionId");
+      .populate("userId")
+      .populate("tournamentId")
+      .populate("questionId")
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    const total = await leaderBoardScheema.countDocuments({ tournamentId: tournamentId });
+
     res.status(200).json({
       success: true,
       message: "Leaderboard fetched successfully",
       leaderboard: leaderBoardByTournament,
+      totalPages: Math.ceil(total / limit),
+      currentPage: parseInt(page),
+      totalItems: total,
     });
   } catch (error) {
     console.log(error);
     return next(createError(500, "Something went wrong"));
   }
 };
+
 
 export const getLeaderboardByUserId = async (req, res, next) => {
   const { userId } = req.params;
